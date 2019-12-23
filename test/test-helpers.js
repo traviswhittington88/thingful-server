@@ -221,27 +221,61 @@ function makeThingsFixtures() {
 }
 
 function cleanTables(db) {
-  return db.raw(
-    `TRUNCATE
-      thingful_things,
-      thingful_users,
-      thingful_reviews
-      RESTART IDENTITY CASCADE`
+  return db.transaction(trx =>
+    trx.raw(
+      `TRUNCATE
+        blogful_articles,
+        blogful_users,
+        blogful_comments
+      `
+    )
+    .then(() =>
+      Promise.all([
+        trx.raw(`ALTER SEQUENCE blogful_articles_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`ALTER SEQUENCE blogful_users_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`ALTER SEQUENCE blogful_comments_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`SELECT setval('blogful_articles_id_seq', 0)`),
+        trx.raw(`SELECT setval('blogful_users_id_seq', 0)`),
+        trx.raw(`SELECT setval('blogful_comments_id_seq', 0)`),
+      ])
+    )
   )
 }
 
+function seedUsers(db, users) {
+  const preppedUsers = users.map(user => ({
+    ...user,
+    password: bcrypt.hashSync(user.password, 1)
+  }))
+  return db.into('thingful_users').insert(preppedUsers)
+    .then(() => 
+      //update the auto sequence to stay in sync
+      db.raw(
+        `SELECT setval('thingful_users_id_seq', ?)`,
+        [users[users.length - 1].id],
+      )
+    )
+}
+
 function seedThingsTables(db, users, things, reviews=[]) {
-  return db
-    .into('thingful_users')
-    .insert(users)
-    .then(() =>
-      db
-        .into('thingful_things')
-        .insert(things)
+  // use a transaction to group the queries and auto rollback on any failure
+  return db.transaction(async trx => {
+    await seedUsers(trx, users)
+    await trx.into('thingful_things').insert(things)
+    // update the auto sequence to match the forced id values
+    await trx.raw(
+      `SELECT setval('thingful_things_id_seq', ?)`,
+      [things[things.length - 1].id],
     )
-    .then(() =>
-      reviews.length && db.into('thingful_reviews').insert(reviews)
-    )
+    // only insert comments if there are some, also update the sequence counter
+    if (comments.length) {
+      await trx.into('thingful_reviews').insert(reviews)
+      await trx.raw(
+        `SELECT setval('thingful_reviews_id_seq', ?)`,
+        [reviews[reviews.length - 1].id],
+      )
+    }
+  })
 }
 
 function seedMaliciousThing(db, user, thing) {
@@ -255,6 +289,11 @@ function seedMaliciousThing(db, user, thing) {
     )
 }
 
+function makeAuthHeader(user) {
+  const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64')
+  return `Basic ${token}`
+}
+
 module.exports = {
   makeUsersArray,
   makeThingsArray,
@@ -262,9 +301,10 @@ module.exports = {
   makeExpectedThingReviews,
   makeMaliciousThing,
   makeReviewsArray,
-
+  makeAuthHeader,
   makeThingsFixtures,
   cleanTables,
   seedThingsTables,
   seedMaliciousThing,
+  seedUsers,
 }
