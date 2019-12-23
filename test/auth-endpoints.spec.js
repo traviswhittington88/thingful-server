@@ -30,6 +30,23 @@ describe.only('Auth endpoints', () => {
       )
     )
 
-    it('has a test')
+    const requiredFields = ['user_name', 'password']
+
+    requiredFields.forEach(field => {
+      const loginAttemptBody = {
+        user_name: testUser.user_name,
+        password: testUser.password,
+      }
+
+      it(`Responds with 400 required error when ${field} is missing`, () => {
+        delete loginAttemptBody[field]
+
+        return supertest(app)
+          .post('/api/auth/login')
+          .expect(400, {
+            error: `Missing ${field} in request body`,
+          })
+      })
+    })
   })
 })
