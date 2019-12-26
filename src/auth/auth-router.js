@@ -17,7 +17,7 @@ authRouter
     }
 
     AuthService.getUserByUserName(
-      req.get.app('db'),
+      req.app.get('db'),
       loginUser.user_name
     )
     .then(dbUser => {
