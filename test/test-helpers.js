@@ -1,3 +1,7 @@
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
+
+
 function makeUsersArray() {
   return [
     {
@@ -224,19 +228,19 @@ function cleanTables(db) {
   return db.transaction(trx =>
     trx.raw(
       `TRUNCATE
-        blogful_articles,
-        blogful_users,
-        blogful_comments
+        thingful_things,
+        thingful_users,
+        thingful_reviews
       `
     )
     .then(() =>
       Promise.all([
-        trx.raw(`ALTER SEQUENCE blogful_articles_id_seq minvalue 0 START WITH 1`),
-        trx.raw(`ALTER SEQUENCE blogful_users_id_seq minvalue 0 START WITH 1`),
-        trx.raw(`ALTER SEQUENCE blogful_comments_id_seq minvalue 0 START WITH 1`),
-        trx.raw(`SELECT setval('blogful_articles_id_seq', 0)`),
-        trx.raw(`SELECT setval('blogful_users_id_seq', 0)`),
-        trx.raw(`SELECT setval('blogful_comments_id_seq', 0)`),
+        trx.raw(`ALTER SEQUENCE thingful_things_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`ALTER SEQUENCE thingful_users_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`ALTER SEQUENCE thingful_reviews_id_seq minvalue 0 START WITH 1`),
+        trx.raw(`SELECT setval('thingful_things_id_seq', 0)`),
+        trx.raw(`SELECT setval('thingful_users_id_seq', 0)`),
+        trx.raw(`SELECT setval('thingful_reviews_id_seq', 0)`),
       ])
     )
   )
@@ -267,8 +271,8 @@ function seedThingsTables(db, users, things, reviews=[]) {
       `SELECT setval('thingful_things_id_seq', ?)`,
       [things[things.length - 1].id],
     )
-    // only insert comments if there are some, also update the sequence counter
-    if (comments.length) {
+    // only insert reviews if there are some, also update the sequence counter
+    if (reviews.length) {
       await trx.into('thingful_reviews').insert(reviews)
       await trx.raw(
         `SELECT setval('thingful_reviews_id_seq', ?)`,
@@ -289,9 +293,17 @@ function seedMaliciousThing(db, user, thing) {
     )
 }
 
-function makeAuthHeader(user) {
+/*function makeAuthHeader(user) {
   const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64')
   return `Basic ${token}`
+} */
+
+function makeAuthHeader(user, secret= process.env.JWT_SECRET) {
+  const token = jwt.sign({ user_id: user.id }, secret, {
+    subject: user.user_name,
+    algorithm: 'HS256',
+  })
+  return `Bearer ${token}`
 }
 
 module.exports = {
