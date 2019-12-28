@@ -4,7 +4,7 @@ const helpers = require('./test-helpers')
 
 
 
-describe.only(`Protected endpoints`, () => {
+describe(`Protected endpoints`, () => {
   let db
 
   const {
