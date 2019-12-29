@@ -7,6 +7,7 @@ describe.only('Users endpoints', function() {
 
   const { testUsers } = helpers.makeThingsFixtures()
   const testUser = testUsers[0]
+  console.log('testUser',testUser)
 
   before('make knex instance', () => {
     db = knex({
@@ -15,6 +16,8 @@ describe.only('Users endpoints', function() {
     })
     app.set('db', db)
   })
+
+  console.log(process.env.TEST_DB_URL)
 
   after('disconnect from db', () => db.destroy())
 
@@ -66,7 +69,7 @@ describe.only('Users endpoints', function() {
             error: `Password must be at least 8 characters`,
           })
       })
-    })
+  
 
     it(`responds 400 and 'Password must be less than 73 characters' when password long`, () => {
       const userLongPass = {
@@ -140,6 +143,7 @@ describe.only('Users endpoints', function() {
         .expect(400, {
           error: `Username already taken` 
         })
+      })
     })
   })
 })
