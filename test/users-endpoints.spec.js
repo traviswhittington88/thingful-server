@@ -168,6 +168,21 @@ describe.only('Users endpoints', function() {
             const actualDate = new Date(res.body.date_created).toLocaleString()
             expect(actualDate).to.eql(expectedDate)
           })
+          .expect(res => 
+            db
+              .from('thingful_things')
+              .select('*')
+              .where({ id: res.body.id })
+              .first()
+              .then(row => {
+                expect(row.user_name).to.eql(newUser.user_name)
+                expect(row.full_name).to.eql(newUser.full_name)
+                expect(row.nickname).to.eql(null)
+                const expectedDate = new Date().toLocaleDateString('en', { timeZone: 'UTC' })
+                const actualDate = new Date(row.body.date_created).toLocaleString()
+                expect(actualDate).to.eql(expectedDate)
+              })
+          )
       })
     })
   })
