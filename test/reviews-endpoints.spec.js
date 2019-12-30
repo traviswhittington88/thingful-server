@@ -89,7 +89,7 @@ describe('Reviews Endpoints', function() {
         thing_id: testThing.id,
       }
 
-      it.only(`responds with 400 and an error message when the '${field}' is missing`, () => {
+      it(`responds with 400 and an error message when the '${field}' is missing`, () => {
         delete newReview[field]
 
         return supertest(app)

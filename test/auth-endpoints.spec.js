@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const helpers = require('./test-helpers')
 const app = require('../src/app')
 
-describe('Auth endpoints', () => {
+describe.only('Auth endpoints', () => {
   let db
 
   const { testUsers } = helpers.makeThingsFixtures()
@@ -79,9 +79,16 @@ describe('Auth endpoints', () => {
           { user_id: testUser.user_id },
             process.env.JWT_SECRET,
           { subject: testUser.user_name,
+            expiresIn: process.env.JWT_EXPIRY,
             algorithm: 'HS256',
           }
         )
+        return supertest(app)
+          .post('/api/auth/login')
+          .send(userValidCreds)
+          .expect(200, {
+            authToken: expectedToken,
+          })
       })
     })
   })
