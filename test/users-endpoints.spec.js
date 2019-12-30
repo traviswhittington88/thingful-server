@@ -170,7 +170,7 @@ describe.only('Users endpoints', function() {
           })
           .expect(res => 
             db
-              .from('thingful_things')
+              .from('thingful_users')
               .select('*')
               .where({ id: res.body.id })
               .first()
@@ -178,8 +178,8 @@ describe.only('Users endpoints', function() {
                 expect(row.user_name).to.eql(newUser.user_name)
                 expect(row.full_name).to.eql(newUser.full_name)
                 expect(row.nickname).to.eql(null)
-                const expectedDate = new Date().toLocaleDateString('en', { timeZone: 'UTC' })
-                const actualDate = new Date(row.body.date_created).toLocaleString()
+                const expectedDate = new Date().toLocaleString('en', { timeZone: 'UTC' })
+                const actualDate = new Date(row.date_created).toLocaleString()
                 expect(actualDate).to.eql(expectedDate)
               })
           )
