@@ -2,7 +2,7 @@ const knex = require('knex')
 const app = require('../src/app')
 const helpers = require('./test-helpers')
 
-describe.only('Users endpoints', function() {
+describe('Users endpoints', function() {
   let db
 
   const { testUsers } = helpers.makeThingsFixtures()
