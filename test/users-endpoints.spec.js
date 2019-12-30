@@ -145,5 +145,30 @@ describe.only('Users endpoints', function() {
         })
       })
     })
+
+    context(`Happy path`, () => {
+      it(`responds 201, serialized user, storing bcrypted password`, () => {
+        const newUser = {
+          user_name: 'test user_name',
+          full_name: 'test full_name',
+          password: 'AAaa11!!',
+        }
+        return supertest(app)
+          .post('/api/users')
+          .send(newUser)
+          .expect(201)
+          .expect(res => {
+            expect(res.body).to.have.property('id')
+            expect(res.body.user_name).to.eql(newUser.user_name)
+            expect(res.body.full_name).to.eql(newUser.full_name)
+            expect(res.body.nickname).to.eql('')
+            expect(res.body).to.not.have.property('password')
+            expect(res.headers.location).to.eql(`/api/users/${res.body.id}`)
+            const expectedDate = new Date().toLocaleString('en', { timeZone: 'UTC' })
+            const actualDate = new Date(res.body.date_created).toLocaleString()
+            expect(actualDate).to.eql(expectedDate)
+          })
+      })
+    })
   })
 })
