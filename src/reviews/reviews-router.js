@@ -10,7 +10,7 @@ reviewsRouter
   .route('/')
   .post(requireAuth, jsonBodyParser, (req, res, next) => {
     const { thing_id, rating, text, user_id } = req.body
-    const newReview = { thing_id, rating, text }
+    const newReview = { thing_id, user_id, rating, text }
 
     for (const [key, value] of Object.entries(newReview))
       if (value == null)
@@ -18,7 +18,7 @@ reviewsRouter
           error: `Missing '${key}' in request body`
         })
   
-    newReview.user_id = user_id
+    newReview.user_id = user_id  //was req.user.id but should have been req.body.user_id... 
   
     ReviewsService.insertReview(
       req.app.get('db'),

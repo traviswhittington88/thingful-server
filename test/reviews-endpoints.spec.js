@@ -33,7 +33,7 @@ describe('Reviews Endpoints', function() {
       )
     )
 
-    it.only(`creates an review, responding with 201 and the new review`, () => {
+    it(`creates an review, responding with 201 and the new review`, () => {
       this.retries(3)
       const testThing = testThings[0]
       const testUser = testUsers[0]
